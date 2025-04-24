@@ -104,10 +104,19 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta interface{
 	org := d.Get("organization").(string)
 	branch := d.Get("branch").(string)
 	repo := d.Get("repository").(string)
+
 	a := d.Get("author")
 	author := map_type.ToTypedObject(a.(map[string]any))
+
 	c := d.Get("committer")
 	committer := map_type.ToTypedObject(c.(map[string]any))
+	if committer["name"] == "" {
+		committer["name"] = author["name"]
+	}
+	if committer["email"] == "" {
+		committer["email"] = author["email"]
+	}
+
 	azdoProject := ""
 	if v, ok := d.GetOk("project"); ok {
 		azdoProject = v.(string)
@@ -174,15 +183,23 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	hostname := d.Get("hostname").(string)
 	org := d.Get("organization").(string)
 	branch := d.Get("branch").(string)
 	repo := d.Get("repository").(string)
 	a := d.Get("author")
-	author := map_type.ToTypedObject(a.(map[string]interface{}))
+	author := map_type.ToTypedObject(a.(map[string]any))
+
 	c := d.Get("committer")
-	committer := map_type.ToTypedObject(c.(map[string]interface{}))
+	committer := map_type.ToTypedObject(c.(map[string]any))
+	if committer["name"] == "" {
+		committer["name"] = author["name"]
+	}
+	if committer["email"] == "" {
+		committer["email"] = author["email"]
+	}
+
 	azdoProject := ""
 	if v, ok := d.GetOk("project"); ok {
 		azdoProject = v.(string)
@@ -307,15 +324,22 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	hostname := d.Get("hostname").(string)
 	org := d.Get("organization").(string)
 	branch := d.Get("branch").(string)
 	repo := d.Get("repository").(string)
 	a := d.Get("author")
-	author := map_type.ToTypedObject(a.(map[string]interface{}))
+	author := map_type.ToTypedObject(a.(map[string]any))
+
 	c := d.Get("committer")
-	committer := map_type.ToTypedObject(c.(map[string]interface{}))
+	committer := map_type.ToTypedObject(c.(map[string]any))
+	if committer["name"] == "" {
+		committer["name"] = author["name"]
+	}
+	if committer["email"] == "" {
+		committer["email"] = author["email"]
+	}
 	azdoProject := ""
 	if v, ok := d.GetOk("project"); ok {
 		azdoProject = v.(string)
