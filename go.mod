@@ -1,6 +1,6 @@
 module github.com/go-pax/terraform-provider-git
 
-go 1.20
+go 1.23
 
 require (
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
