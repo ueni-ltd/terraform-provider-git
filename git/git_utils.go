@@ -21,6 +21,23 @@ func gitCommand(cwd string, args ...string) ([]byte, error) {
 	}
 }
 
+func gitCommandWithCommitter(cwd string, committer map[string]string, args ...string) ([]byte, error) {
+	command := exec.Command("git", args...)
+	if cwd != "" {
+		command.Dir = cwd
+	}
+	command.Env = []string{
+		"GIT_COMMITTER_NAME=" + committer["name"],
+		"GIT_COMMITTER_EMAIL=" + committer["email"],
+	}
+	out, err := command.CombinedOutput()
+	if err != nil {
+		return out, fmt.Errorf("error while running git %[1]s: %[4]w\nWorking dir: %[2]s\nOutput: %[3]s", strings.Join(args, " "), cwd, string(out), err)
+	} else {
+		return out, err
+	}
+}
+
 func flatten(args ...interface{}) []string {
 	ret := make([]string, 0, len(args))
 

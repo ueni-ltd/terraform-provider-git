@@ -105,9 +105,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta interface{
 	branch := d.Get("branch").(string)
 	repo := d.Get("repository").(string)
 	a := d.Get("author")
-	author := map_type.ToTypedObject(a.(map[string]interface{}))
+	author := map_type.ToTypedObject(a.(map[string]any))
 	c := d.Get("committer")
-	committer := map_type.ToTypedObject(c.(map[string]interface{}))
+	committer := map_type.ToTypedObject(c.(map[string]any))
 	azdoProject := ""
 	if v, ok := d.GetOk("project"); ok {
 		azdoProject = v.(string)
@@ -138,13 +138,6 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if _, err := gitCommand(checkout_dir, "config", "--global", "user.name", committer["name"]); err != nil {
-		return diag.Errorf("failed to set committer name: %s", err)
-	}
-	if _, err := gitCommand(checkout_dir, "config", "--global", "user.email", committer["email"]); err != nil {
-		return diag.Errorf("failed to set committer email: %s", err)
-	}
-
 	var deleted_files []string
 	files := d.Get("file")
 	is_clean := true
@@ -171,7 +164,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta interface{
 	commit_body := fmt.Sprintf("The following files were deleted by terraform:\n%s", strings.Join(deleted_files, "\n"))
 	commit_command := flatten("commit", "-m", commit_message, "-m", commit_body, "--allow-empty")
 	commit_command = append(commit_command, commands.getAuthorString(author["name"], author["email"])...)
-	if _, err := gitCommand(checkout_dir, commit_command...); err != nil {
+	if _, err := gitCommandWithCommitter(checkout_dir, committer, commit_command...); err != nil {
 		return diag.Errorf("failed to commit file(s) to git: %s", err)
 	}
 
@@ -219,13 +212,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{
 		if err != nil {
 			return diag.Errorf("failed to checkout branch %s: %s", branch, repo)
 		}
-	}
-
-	if _, err := gitCommand(checkout_dir, "config", "--global", "user.name", committer["name"]); err != nil {
-		return diag.Errorf("failed to set committer name: %s", err)
-	}
-	if _, err := gitCommand(checkout_dir, "config", "--global", "user.email", committer["email"]); err != nil {
-		return diag.Errorf("failed to set committer email: %s", err)
 	}
 
 	is_clean := true
@@ -304,7 +290,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{
 	commit_command := flatten("commit", "-m", commit_message, "-m", commit_body, "--allow-empty")
 	commit_command = append(commit_command, commands.getAuthorString(author["name"], author["email"])...)
 	commit_command = append(commit_command, "--")
-	if _, err := gitCommand(checkout_dir, commit_command...); err != nil {
+	if _, err := gitCommandWithCommitter(checkout_dir, committer, commit_command...); err != nil {
 		return diag.Errorf("failed to commit file(s) to git: %s", err)
 	}
 
@@ -360,13 +346,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if _, err := gitCommand(checkout_dir, "config", "--global", "user.name", committer["name"]); err != nil {
-		return diag.Errorf("failed to set committer name: %s", err)
-	}
-	if _, err := gitCommand(checkout_dir, "config", "--global", "user.email", committer["email"]); err != nil {
-		return diag.Errorf("failed to set committer email: %s", err)
-	}
-
 	var added_files []string
 	files := d.Get("file")
 	for _, v := range files.(*schema.Set).List() {
@@ -391,7 +370,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta interface{
 	commit_body := fmt.Sprintf("The following files were created by terraform:\n%s", strings.Join(added_files, "\n"))
 	commit_command := flatten("commit", "-m", commit_message, "-m", commit_body, "--allow-empty")
 	commit_command = append(commit_command, commands.getAuthorString(author["name"], author["email"])...)
-	if _, err := gitCommand(checkout_dir, commit_command...); err != nil {
+	if _, err := gitCommandWithCommitter(checkout_dir, committer, commit_command...); err != nil {
 		return diag.Errorf("failed to commit file(s) to git: %s", err)
 	}
 
