@@ -138,10 +138,10 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if _, err := gitCommand(checkout_dir, "config", "user.name", committer["name"]); err != nil {
+	if _, err := gitCommand(checkout_dir, "config", "--global", "user.name", committer["name"]); err != nil {
 		return diag.Errorf("failed to set committer name: %s", err)
 	}
-	if _, err := gitCommand(checkout_dir, "config", "user.email", committer["email"]); err != nil {
+	if _, err := gitCommand(checkout_dir, "config", "--global", "user.email", committer["email"]); err != nil {
 		return diag.Errorf("failed to set committer email: %s", err)
 	}
 
@@ -221,10 +221,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if _, err := gitCommand(checkout_dir, "config", "user.name", committer["name"]); err != nil {
+	if _, err := gitCommand(checkout_dir, "config", "--global", "user.name", committer["name"]); err != nil {
 		return diag.Errorf("failed to set committer name: %s", err)
 	}
-	if _, err := gitCommand(checkout_dir, "config", "user.email", committer["email"]); err != nil {
+	if _, err := gitCommand(checkout_dir, "config", "--global", "user.email", committer["email"]); err != nil {
 		return diag.Errorf("failed to set committer email: %s", err)
 	}
 
@@ -360,10 +360,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if _, err := gitCommand(checkout_dir, "config", "user.name", committer["name"]); err != nil {
+	if _, err := gitCommand(checkout_dir, "config", "--global", "user.name", committer["name"]); err != nil {
 		return diag.Errorf("failed to set committer name: %s", err)
 	}
-	if _, err := gitCommand(checkout_dir, "config", "user.email", committer["email"]); err != nil {
+	if _, err := gitCommand(checkout_dir, "config", "--global", "user.email", committer["email"]); err != nil {
 		return diag.Errorf("failed to set committer email: %s", err)
 	}
 
