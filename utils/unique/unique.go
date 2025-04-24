@@ -22,9 +22,9 @@ func UniqueId() string {
 func PrefixedUniqueId(prefix string) string {
 	return fmt.Sprintf("%s%s", prefix,
 		strings.ToLower(
-			strings.Replace(
+			strings.ReplaceAll( // Use ReplaceAll instead of Replace with -1
 				base32.StdEncoding.EncodeToString(uuidV4()),
-				"=", "", -1)))
+				"=", "")))
 }
 
 func uuidV4() []byte {
