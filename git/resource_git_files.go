@@ -3,16 +3,17 @@ package git
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"path"
+	"strings"
+
 	"github.com/go-pax/terraform-provider-git/utils/map_type"
 	"github.com/go-pax/terraform-provider-git/utils/set"
 	"github.com/go-pax/terraform-provider-git/utils/unique"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
-	"os"
-	"path"
-	"strings"
 )
 
 func resourceGitFiles() *schema.Resource {
@@ -25,6 +26,14 @@ func resourceGitFiles() *schema.Resource {
 					Type: schema.TypeString,
 				},
 				Description: "`object({ name=string, email=string, message=string })` Defines the commit user and message.",
+			},
+			"committer": {
+				Type:     schema.TypeMap,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Description: "`object({ name=string, email=string})` Defines the committer user and email.",
 			},
 			"branch": {
 				Type:        schema.TypeString,
@@ -95,6 +104,10 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta interface{
 	org := d.Get("organization").(string)
 	branch := d.Get("branch").(string)
 	repo := d.Get("repository").(string)
+	a := d.Get("author")
+	author := map_type.ToTypedObject(a.(map[string]interface{}))
+	c := d.Get("committer")
+	committer := map_type.ToTypedObject(c.(map[string]interface{}))
 	azdoProject := ""
 	if v, ok := d.GetOk("project"); ok {
 		azdoProject = v.(string)
@@ -125,6 +138,10 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 	}
 
+	if _, err := gitCommand(checkout_dir, "-c", fmt.Sprintf("user.name=%s", committer["name"]), "-c", fmt.Sprintf("user.email=%s", committer["email"])); err != nil {
+		return diag.Errorf("failed to set committer: %s", err)
+	}
+
 	var deleted_files []string
 	files := d.Get("file")
 	is_clean := true
@@ -147,8 +164,6 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta interface{
 		return diag.Errorf("failed to add files to git: %s", err)
 	}
 
-	a := d.Get("author")
-	author := map_type.ToTypedObject(a.(map[string]interface{}))
 	commit_message := author["message"]
 	commit_body := fmt.Sprintf("The following files were deleted by terraform:\n%s", strings.Join(deleted_files, "\n"))
 	commit_command := flatten("commit", "-m", commit_message, "-m", commit_body, "--allow-empty")
@@ -168,6 +183,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{
 	org := d.Get("organization").(string)
 	branch := d.Get("branch").(string)
 	repo := d.Get("repository").(string)
+	a := d.Get("author")
+	author := map_type.ToTypedObject(a.(map[string]interface{}))
+	c := d.Get("committer")
+	committer := map_type.ToTypedObject(c.(map[string]interface{}))
 	azdoProject := ""
 	if v, ok := d.GetOk("project"); ok {
 		azdoProject = v.(string)
@@ -197,6 +216,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{
 		if err != nil {
 			return diag.Errorf("failed to checkout branch %s: %s", branch, repo)
 		}
+	}
+
+	if _, err := gitCommand(checkout_dir, "-c", fmt.Sprintf("user.name=%s", committer["name"]), "-c", fmt.Sprintf("user.email=%s", committer["email"])); err != nil {
+		return diag.Errorf("failed to set committer: %s", err)
 	}
 
 	is_clean := true
@@ -270,8 +293,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{
 	}
 
 	updated_files = set.GetSetFromStringArray(updated_files)
-	a := d.Get("author")
-	author := map_type.ToTypedObject(a.(map[string]interface{}))
 	commit_message := author["message"]
 	commit_body := fmt.Sprintf("The following files were updated by terraform:\n%s", strings.Join(updated_files, "\n"))
 	commit_command := flatten("commit", "-m", commit_message, "-m", commit_body, "--allow-empty")
@@ -299,6 +320,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta interface{
 	org := d.Get("organization").(string)
 	branch := d.Get("branch").(string)
 	repo := d.Get("repository").(string)
+	a := d.Get("author")
+	author := map_type.ToTypedObject(a.(map[string]interface{}))
+	c := d.Get("committer")
+	committer := map_type.ToTypedObject(c.(map[string]interface{}))
 	azdoProject := ""
 	if v, ok := d.GetOk("project"); ok {
 		azdoProject = v.(string)
@@ -329,6 +354,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 	}
 
+	if _, err := gitCommand(checkout_dir, "-c", fmt.Sprintf("user.name=%s", committer["name"]), "-c", fmt.Sprintf("user.email=%s", committer["email"])); err != nil {
+		return diag.Errorf("failed to set committer: %s", err)
+	}
+
 	var added_files []string
 	files := d.Get("file")
 	for _, v := range files.(*schema.Set).List() {
@@ -349,8 +378,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta interface{
 		added_files = append(added_files, filepath)
 	}
 
-	a := d.Get("author")
-	author := map_type.ToTypedObject(a.(map[string]interface{}))
 	commit_message := author["message"]
 	commit_body := fmt.Sprintf("The following files were created by terraform:\n%s", strings.Join(added_files, "\n"))
 	commit_command := flatten("commit", "-m", commit_message, "-m", commit_body, "--allow-empty")
