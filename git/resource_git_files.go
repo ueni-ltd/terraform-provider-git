@@ -138,8 +138,11 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if _, err := gitCommand(checkout_dir, "-c", fmt.Sprintf("user.name=%s", committer["name"]), "-c", fmt.Sprintf("user.email=%s", committer["email"])); err != nil {
-		return diag.Errorf("failed to set committer: %s", err)
+	if _, err := gitCommand(checkout_dir, "config", "user.name", committer["name"]); err != nil {
+		return diag.Errorf("failed to set committer name: %s", err)
+	}
+	if _, err := gitCommand(checkout_dir, "config", "user.email", committer["email"]); err != nil {
+		return diag.Errorf("failed to set committer email: %s", err)
 	}
 
 	var deleted_files []string
@@ -218,8 +221,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if _, err := gitCommand(checkout_dir, "-c", fmt.Sprintf("user.name=%s", committer["name"]), "-c", fmt.Sprintf("user.email=%s", committer["email"])); err != nil {
-		return diag.Errorf("failed to set committer: %s", err)
+	if _, err := gitCommand(checkout_dir, "config", "user.name", committer["name"]); err != nil {
+		return diag.Errorf("failed to set committer name: %s", err)
+	}
+	if _, err := gitCommand(checkout_dir, "config", "user.email", committer["email"]); err != nil {
+		return diag.Errorf("failed to set committer email: %s", err)
 	}
 
 	is_clean := true
@@ -354,8 +360,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if _, err := gitCommand(checkout_dir, "-c", fmt.Sprintf("user.name=%s", committer["name"]), "-c", fmt.Sprintf("user.email=%s", committer["email"])); err != nil {
-		return diag.Errorf("failed to set committer: %s", err)
+	if _, err := gitCommand(checkout_dir, "config", "user.name", committer["name"]); err != nil {
+		return diag.Errorf("failed to set committer name: %s", err)
+	}
+	if _, err := gitCommand(checkout_dir, "config", "user.email", committer["email"]); err != nil {
+		return diag.Errorf("failed to set committer email: %s", err)
 	}
 
 	var added_files []string
