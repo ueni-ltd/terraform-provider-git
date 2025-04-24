@@ -11,7 +11,7 @@ OS_ARCH=darwin_amd64
 default: install
 
 tooling:
-	sudo curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sudo sh -s -- -b $(go env GOPATH)/bin v1.52.2
+	sudo curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sudo sh -s -- -b $(go env GOPATH)/bin v2.1.2
 	golangci-lint --version
 
 lint:
