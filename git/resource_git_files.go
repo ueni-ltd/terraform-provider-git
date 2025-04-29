@@ -312,11 +312,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, err := gitCommand(checkout_dir, "push", "origin", "HEAD"); err != nil {
-		return diag.Errorf("failed to push commit")
+		return diag.Errorf("failed to push commit: %s", err)
 	}
 	var sha string
 	if out, err := gitCommand(checkout_dir, "rev-parse", "HEAD"); err != nil {
-		return diag.Errorf("failed to get revision")
+		return diag.Errorf("failed to get revision: %s", err)
 	} else {
 		sha = strings.TrimRight(string(out), "\n")
 	}
