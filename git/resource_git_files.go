@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/go-pax/terraform-provider-git/utils/map_type"
 	"github.com/go-pax/terraform-provider-git/utils/set"
@@ -178,7 +179,11 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta interface{
 	}
 
 	if _, err := gitCommand(checkout_dir, "push", "origin", "HEAD"); err != nil {
-		return diag.Errorf("failed to push commit")
+		time.Sleep(time.Second * 30)
+		gitCommand(checkout_dir, "pull")
+		if _, err := gitCommand(checkout_dir, "push", "origin", "HEAD"); err != nil {
+			return diag.Errorf("failed to push commit: %s", err)
+		}
 	}
 	return nil
 }
@@ -312,7 +317,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, err := gitCommand(checkout_dir, "push", "origin", "HEAD"); err != nil {
-		return diag.Errorf("failed to push commit: %s", err)
+		time.Sleep(time.Second * 30)
+		gitCommand(checkout_dir, "pull")
+		if _, err := gitCommand(checkout_dir, "push", "origin", "HEAD"); err != nil {
+			return diag.Errorf("failed to push commit: %s", err)
+		}
 	}
 	var sha string
 	if out, err := gitCommand(checkout_dir, "rev-parse", "HEAD"); err != nil {
@@ -399,7 +408,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, err := gitCommand(checkout_dir, "push", "origin", "HEAD"); err != nil {
-		return diag.Errorf("failed to push commit")
+		time.Sleep(time.Second * 30)
+		gitCommand(checkout_dir, "pull")
+		if _, err := gitCommand(checkout_dir, "push", "origin", "HEAD"); err != nil {
+			return diag.Errorf("failed to push commit: %s", err)
+		}
 	}
 
 	var sha string
